@@ -17,10 +17,13 @@ jobs:
           set -euo pipefail
           python3 -m pip install --quiet pillow
           mkdir -p aphotographie/portfolio /tmp/apho
-          ENV_FILE=/tmp/aphoto.env
-          curl -fsSL -H "Authorization: Bearer ${{ github.token }}" -H "Accept: application/vnd.github.raw+json" "https://api.github.com/repos/danielmaitredarest/aphotographie/contents/.env" -o "$ENV_FILE"
-          SUPABASE_URL=$(grep '^VITE_SUPABASE_URL=' "$ENV_FILE" | cut -d= -f2- | tr -d '"')
-          SUPABASE_KEY=$(grep '^VITE_SUPABASE_PUBLISHABLE_KEY=' "$ENV_FILE" | cut -d= -f2- | tr -d '"')
+          SUPABASE_URL='https://yaronpzislkfetwrihfs.supabase.co'
+          HTML=$(curl -fsSL https://aphotographie.ch/)
+          JS_PATH=$(printf '%s' "$HTML" | grep -oE 'src="[^"]+\.js[^"]*"' | head -1 | cut -d'"' -f2)
+          case "$JS_PATH" in http*) JS_URL="$JS_PATH";; *) JS_URL="https://aphotographie.ch$JS_PATH";; esac
+          curl -fsSL "$JS_URL" -o /tmp/site.js
+          SUPABASE_KEY=$(grep -oE 'eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+' /tmp/site.js | head -1)
+          test -n "$SUPABASE_KEY"
           curl -fsSL "$SUPABASE_URL/rest/v1/categories?select=id,slug,name,display_order&order=display_order.asc" -H "apikey: $SUPABASE_KEY" -H "Authorization: Bearer $SUPABASE_KEY" > /tmp/categories.json
           curl -fsSL "$SUPABASE_URL/rest/v1/photos?select=id,category_id,image_url,title,alt_text,is_featured,display_order&order=display_order.asc" -H "apikey: $SUPABASE_KEY" -H "Authorization: Bearer $SUPABASE_KEY" > /tmp/photos.json
           python3 - <<'PY'
