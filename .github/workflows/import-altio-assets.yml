@@ -1,0 +1,78 @@
+name: Import Altio repository assets
+on:
+  workflow_dispatch:
+  issues:
+    types: [opened]
+permissions:
+  contents: write
+jobs:
+  import:
+    if: github.event_name == 'workflow_dispatch' || startsWith(github.event.issue.title, 'Altio repo asset import')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download source repository
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          curl -fsSL -H "Authorization: Bearer $GH_TOKEN" -H "Accept: application/vnd.github+json" https://api.github.com/repos/danielmaitredarest/webforge-briefly/tarball/main -o /tmp/altio.tar.gz
+          mkdir -p /tmp/altio-src
+          tar -xzf /tmp/altio.tar.gz -C /tmp/altio-src --strip-components=1
+      - name: Normalize reusable assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m pip install --quiet pillow
+          python3 - <<'PY'
+          from PIL import Image,ImageOps
+          from pathlib import Path
+          import hashlib,csv,re
+          src=Path("/tmp/altio-src")
+          out=Path("altio")
+          rows=[]
+          groups=[
+            ("realisations",src/"src/assets/portfolio"),
+            ("articles",src/"src/assets/blog"),
+            ("site",src/"src/assets/services"),
+          ]
+          extra=[src/"src/assets/daniel-maitre.webp",src/"public/og-image.png",src/"public/images/altio-logo-blue.png"]
+          def emit(p,group):
+            stem=re.sub(r'[^a-z0-9-]+','-',p.stem.lower()).strip('-')
+            name=f"altio-{stem}.jpg"
+            dest=out/group/name
+            dest.parent.mkdir(parents=True,exist_ok=True)
+            im=ImageOps.exif_transpose(Image.open(p)).convert("RGB")
+            im.save(dest,"JPEG",quality=92,optimize=True,progressive=True)
+            sha=hashlib.sha256(dest.read_bytes()).hexdigest()
+            rows.append([group,str(p.relative_to(src)),str(dest),name,sha])
+          for group,d in groups:
+            for p in sorted(d.glob("*")):
+              if p.suffix.lower() in {".png",".jpg",".jpeg",".webp",".avif"}: emit(p,group)
+          for p in extra:
+            if p.exists(): emit(p,"site")
+          with open("/tmp/altio.csv","w",newline="",encoding="utf-8") as f: csv.writer(f).writerows(rows)
+          print("assets",len(rows))
+          PY
+      - name: Merge manifest
+        shell: python
+        run: |
+          import csv,datetime
+          with open("manifest.csv",newline="",encoding="utf-8") as f:
+            rd=csv.DictReader(f); fields=rd.fieldnames; rows=list(rd)
+          existing={(r.get("project"),r.get("sha256")) for r in rows}
+          for group,source,path,name,sha in csv.reader(open("/tmp/altio.csv",encoding="utf-8")):
+            if ("altio",sha) in existing: continue
+            aid="altio-"+group+"-"+name.removeprefix("altio-").removesuffix(".jpg")
+            rows.append({"asset_id":aid,"project":"altio","relative_path":path,"filename":name,"source_type":"repository_asset","source_url":"","source_reference":"danielmaitredarest/webforge-briefly:"+source,"created_at":"2026-09-19","sha256":sha,"channels":"","github_path":path,"github_public_url":"https://raw.githubusercontent.com/danielmaitredarest/content-engine-assets/main/"+path,"status":"ready","notes":"Normalized reusable asset from Altio source repository."})
+            existing.add(("altio",sha))
+          with open("manifest.csv","w",newline="",encoding="utf-8") as f:
+            wr=csv.DictWriter(f,fieldnames=fields); wr.writeheader(); wr.writerows(rows)
+      - name: Commit assets
+        run: |
+          git config user.name "ChatGPT"
+          git config user.email "chatgpt@users.noreply.github.com"
+          git add altio manifest.csv
+          if ! git diff --cached --quiet; then
+            git commit -m "Import reusable Altio repository assets"
+            git push
+          fi
