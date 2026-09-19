@@ -10,12 +10,17 @@ on:
     types: [opened]
 permissions:
   contents: write
+concurrency:
+  group: content-engine-manifest-write
+  cancel-in-progress: false
 jobs:
   sync:
     if: github.event_name == 'workflow_dispatch' || startsWith(github.event.issue.title, 'Sync project manifest - ')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Refresh main
+        run: git pull --ff-only origin main
       - name: Resolve project
         id: project
         shell: bash
