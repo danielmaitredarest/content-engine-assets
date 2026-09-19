@@ -24,18 +24,8 @@ jobs:
           convert_asset "https://yaronpzislkfetwrihfs.supabase.co/storage/v1/object/public/photos/resized/1767002285484-1766999891063-1766962579771-4-resized.webp" "aphotographie/portfolio/aphotographie-culinaire-restaurant-geneve-03.jpg"
           convert_asset "https://yaronpzislkfetwrihfs.supabase.co/storage/v1/object/public/photos/f1b72fda-8a15-47c2-8b92-bd671ca92722/1767089340761-0K6A5665.webp" "aphotographie/portfolio/aphotographie-metiers-artisan-geneve-03.jpg"
           convert_asset "https://yaronpzislkfetwrihfs.supabase.co/storage/v1/object/public/photos/0609a25f-3c4e-4996-9aa5-b9f2ea64b0e1/1767095090540-0K6A6390.webp" "aphotographie/portfolio/aphotographie-mariage-geneve-01.jpg"
-          SUPABASE_URL=https://yaronpzislkfetwrihfs.supabase.co
-          SUPABASE_KEY=$(curl -fsSL https://raw.githubusercontent.com/danielmaitredarest/aphotographie/main/.env | grep '^VITE_SUPABASE_PUBLISHABLE_KEY=' | cut -d= -f2- | tr -d '"')
-          curl -fsSL "$SUPABASE_URL/rest/v1/photos?select=id,category_id,image_url,display_order&order=display_order.asc" -H "apikey: $SUPABASE_KEY" -H "Authorization: Bearer $SUPABASE_KEY" > /tmp/photos.json
-          jq -r '[.[] | select(.image_url != null)] | unique_by(.category_id) | .[] | [.image_url,.id,.category_id] | @tsv' /tmp/photos.json | grep -v -E '1767089957640|1767094131693|1767105250775|converted-1766994327875|1767002275641|1767092047631|1767089368146|1767087522982|1767094681414|1769964105337|1769964107385|1779377786547|1767002285484|1767089340761|1767095090540' | head -n 2 | tr '\t' '|' > /tmp/extra_urls.txt
-          n=0
-          while IFS='|' read -r url id cat; do
-            n=$((n+1))
-            convert_asset "$url" "aphotographie/portfolio/aphotographie-portfolio-selection-geneve-0__N__.jpg"
-            mv "aphotographie/portfolio/aphotographie-portfolio-selection-geneve-0__N__.jpg" "aphotographie/portfolio/aphotographie-portfolio-selection-geneve-0$n.jpg"
-            echo "$id|$cat|$url" >> /tmp/extra_meta.txt
-          done < /tmp/extra_urls.txt
-          test "$n" -eq 2
+          convert_asset "https://raw.githubusercontent.com/danielmaitredarest/aphotographie/main/public/blog/golden-hour-geneve.webp" "aphotographie/portfolio/aphotographie-golden-hour-geneve-01.jpg"
+          convert_asset "https://raw.githubusercontent.com/danielmaitredarest/aphotographie/main/public/blog/identite-visuelle-marque.webp" "aphotographie/portfolio/aphotographie-identite-visuelle-marque-01.jpg"
       - name: Update manifest
         shell: python
         run: |
@@ -43,7 +33,9 @@ jobs:
           specs=[
            ("aphotographie-portfolio-culinaire-03","aphotographie/portfolio/aphotographie-culinaire-restaurant-geneve-03.jpg","https://yaronpzislkfetwrihfs.supabase.co/storage/v1/object/public/photos/resized/1767002285484-1766999891063-1766962579771-4-resized.webp","aphotographie-public-cms:additional-food"),
            ("aphotographie-portfolio-metiers-03","aphotographie/portfolio/aphotographie-metiers-artisan-geneve-03.jpg","https://yaronpzislkfetwrihfs.supabase.co/storage/v1/object/public/photos/f1b72fda-8a15-47c2-8b92-bd671ca92722/1767089340761-0K6A5665.webp","aphotographie-public-cms:additional-metiers"),
-           ("aphotographie-portfolio-mariage-01","aphotographie/portfolio/aphotographie-mariage-geneve-01.jpg","https://yaronpzislkfetwrihfs.supabase.co/storage/v1/object/public/photos/0609a25f-3c4e-4996-9aa5-b9f2ea64b0e1/1767095090540-0K6A6390.webp","aphotographie-public-cms:additional-mariage")]
+           ("aphotographie-portfolio-mariage-01","aphotographie/portfolio/aphotographie-mariage-geneve-01.jpg","https://yaronpzislkfetwrihfs.supabase.co/storage/v1/object/public/photos/0609a25f-3c4e-4996-9aa5-b9f2ea64b0e1/1767095090540-0K6A6390.webp","aphotographie-public-cms:additional-mariage"),
+           ("aphotographie-blog-golden-hour-01","aphotographie/portfolio/aphotographie-golden-hour-geneve-01.jpg","https://aphotographie.ch/blog/golden-hour-geneve.webp","danielmaitredarest/aphotographie:public/blog/golden-hour-geneve.webp"),
+           ("aphotographie-blog-identite-visuelle-01","aphotographie/portfolio/aphotographie-identite-visuelle-marque-01.jpg","https://aphotographie.ch/blog/identite-visuelle-marque.webp","danielmaitredarest/aphotographie:public/blog/identite-visuelle-marque.webp")]
           for idx,line in enumerate(open("/tmp/extra_meta.txt"),1):
             i,c,u=line.strip().split("|",2)
             specs.append((f"aphotographie-portfolio-selection-0{idx}",f"aphotographie/portfolio/aphotographie-portfolio-selection-geneve-0{idx}.jpg",u,f"aphotographie-public-cms:{i}"))
@@ -71,6 +63,6 @@ jobs:
             aphotographie/portfolio/aphotographie-culinaire-restaurant-geneve-03.jpg
             aphotographie/portfolio/aphotographie-metiers-artisan-geneve-03.jpg
             aphotographie/portfolio/aphotographie-mariage-geneve-01.jpg
-            aphotographie/portfolio/aphotographie-portfolio-selection-geneve-01.jpg
-            aphotographie/portfolio/aphotographie-portfolio-selection-geneve-02.jpg
+            aphotographie/portfolio/aphotographie-golden-hour-geneve-01.jpg
+            aphotographie/portfolio/aphotographie-identite-visuelle-marque-01.jpg
           retention-days: 1
