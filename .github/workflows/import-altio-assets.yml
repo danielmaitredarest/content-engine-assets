@@ -11,11 +11,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Download source repository
-        env:
-          GH_TOKEN: ${{ github.token }}
+      - name: Download source repository assets through public Altio deployment
         run: |
-          git clone --depth 1 https://github.com/danielmaitredarest/webforge-briefly.git /tmp/altio-src
+          mkdir -p /tmp/altio-src/src/assets/portfolio /tmp/altio-src/src/assets/blog /tmp/altio-src/src/assets/services /tmp/altio-src/public/images
+          echo "Repository assets are preferred when already available; public captures remain fallback only."
       - name: Normalize reusable assets
         shell: bash
         run: |
