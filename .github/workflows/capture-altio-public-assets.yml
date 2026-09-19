@@ -44,6 +44,23 @@ jobs:
               await page.goto(url,{waitUntil:'domcontentloaded',timeout:90000});
               await page.waitForLoadState('networkidle',{timeout:20000}).catch(()=>{});
               await page.waitForTimeout(wait);
+              // Remove cookie/consent overlays from reusable captures only.
+              await page.evaluate(() => {
+                const needles=['cookie','cookies','consent','tarteaucitron','axeptio','didomi','cmp','rgpd'];
+                for (const el of document.querySelectorAll('body *')) {
+                  const id=(el.id||'').toLowerCase(), cls=(typeof el.className==='string'?el.className:'').toLowerCase();
+                  const aria=(el.getAttribute('aria-label')||'').toLowerCase();
+                  const role=(el.getAttribute('role')||'').toLowerCase();
+                  const txt=(el.textContent||'').trim().toLowerCase();
+                  const s=getComputedStyle(el);
+                  const fixed=s.position==='fixed'||s.position==='sticky';
+                  const hint=needles.some(n=>id.includes(n)||cls.includes(n)||aria.includes(n));
+                  const consentText=(txt.includes('cookie')||txt.includes('consentement')) && (txt.includes('accepter')||txt.includes('refuser')||txt.includes('préférences'));
+                  if ((hint||consentText) && (fixed||role==='dialog')) el.remove();
+                }
+                document.documentElement.style.overflow='auto';
+                document.body.style.overflow='auto';
+              }).catch(()=>{});
               await page.screenshot({path:file,type:'jpeg',quality:90,fullPage:false});
             } catch(e) { console.error('SKIP',url,e.message); }
           }
