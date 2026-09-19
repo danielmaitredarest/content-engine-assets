@@ -1,0 +1,49 @@
+name: Capture Altio public assets
+on:
+  workflow_dispatch:
+  issues:
+    types: [opened]
+permissions:
+  contents: write
+jobs:
+  capture:
+    if: github.event_name == 'workflow_dispatch' || startsWith(github.event.issue.title, 'Capture Altio public assets')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install browser
+        run: |
+          npm install --no-save playwright@1.55.0
+          npx playwright install --with-deps chromium
+      - name: Capture Altio pages
+        run: |
+          mkdir -p altio/site altio/realisations
+          cat > /tmp/capture.mjs <<'JS'
+          import { chromium } from 'playwright';
+          const browser=await chromium.launch({headless:true});
+          const page=await browser.newPage({viewport:{width:1440,height:1000},deviceScaleFactor:1});
+          const shots=[
+            ['https://altio.ch/','altio/site/altio-homepage.jpg',2500],
+            ['https://altio.ch/services','altio/site/altio-services.jpg',2500],
+            ['https://altio.ch/realisations','altio/realisations/altio-portfolio-overview.jpg',3500],
+          ];
+          for (const [url,file,wait] of shots){
+            await page.goto(url,{waitUntil:'networkidle',timeout:90000});
+            await page.waitForTimeout(wait);
+            await page.screenshot({path:file,type:'jpeg',quality:90,fullPage:false});
+          }
+          await browser.close();
+          JS
+          node /tmp/capture.mjs
+      - name: Commit captures
+        run: |
+          git config user.name "ChatGPT"
+          git config user.email "chatgpt@users.noreply.github.com"
+          git add altio
+          if ! git diff --cached --quiet; then
+            git commit -m "Add reusable Altio public site captures"
+            git push
+          fi
