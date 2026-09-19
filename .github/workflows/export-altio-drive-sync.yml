@@ -1,0 +1,22 @@
+name: Export Altio Drive sync
+on:
+  workflow_dispatch:
+  issues:
+    types: [opened]
+permissions:
+  contents: read
+jobs:
+  export:
+    if: github.event_name == 'workflow_dispatch' || startsWith(github.event.issue.title, 'Export Altio Drive sync')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Package Altio assets
+        run: |
+          test -d altio
+          zip -qr altio-drive-sync.zip altio
+      - uses: actions/upload-artifact@v4
+        with:
+          name: altio-drive-sync
+          path: altio-drive-sync.zip
+          retention-days: 3
