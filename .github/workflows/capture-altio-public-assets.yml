@@ -17,7 +17,7 @@ jobs:
       - name: Install browser
         run: |
           npm install --no-save playwright@1.55.0
-          npx playwright install --with-deps chromium
+          npx playwright install chromium
       - name: Capture Altio pages
         run: |
           mkdir -p altio/site altio/realisations
