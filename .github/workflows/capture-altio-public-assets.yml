@@ -67,6 +67,46 @@ jobs:
           await browser.close();
           JS
           node capture.mjs
+      - name: Update Altio manifest
+        run: |
+          python - <<'PY'
+          import csv, hashlib, os
+          from datetime import date
+          manifest='manifest.csv'
+          fields=['asset_id','project','relative_path','filename','source_type','source_url','source_reference','created_at','sha256','channels','github_path','github_public_url','status','notes']
+          urls={
+            'altio/site/altio-homepage.jpg':'https://altio.ch/',
+            'altio/site/altio-services.jpg':'https://altio.ch/services',
+            'altio/realisations/altio-portfolio-overview.jpg':'https://altio.ch/realisations',
+            'altio/realisations/ness.jpg':'https://nessfo.ch/en',
+            'altio/realisations/runigma-b2c.jpg':'https://runigma.com/b2c',
+            'altio/realisations/maison-sama.jpg':'https://maisonsama.ch/',
+            'altio/realisations/rooftop-105.jpg':'https://rooftop.altio.ch/',
+            'altio/realisations/gerard-paley.jpg':'https://gpaley.ch/fr',
+            'altio/realisations/marcus.jpg':'https://marcus.altio.ch/',
+            'altio/realisations/myswissinvoice.jpg':'https://myswissinvoice.ch/',
+            'altio/realisations/relumo.jpg':'https://relumo.ch/',
+            'altio/realisations/propulsa.jpg':'https://propulsa.ch/',
+          }
+          rows=[]
+          if os.path.exists(manifest):
+            with open(manifest,newline='',encoding='utf-8') as h: rows=list(csv.DictReader(h))
+          rows=[r for r in rows if not (r.get('project')=='altio' and r.get('relative_path') in urls)]
+          for p,u in urls.items():
+            if not os.path.exists(p): continue
+            sha=hashlib.sha256(open(p,'rb').read()).hexdigest()
+            stem=os.path.splitext(os.path.basename(p))[0]
+            rows.append({
+              'asset_id':'altio-'+stem,'project':'altio','relative_path':p,'filename':os.path.basename(p),
+              'source_type':'public_capture','source_url':u,'source_reference':'altio-capture-workflow',
+              'created_at':str(date.today()),'sha256':sha,'channels':'','github_path':p,
+              'github_public_url':'https://raw.githubusercontent.com/danielmaitredarest/content-engine-assets/main/'+p,
+              'status':'ready','notes':'Reusable public capture; cookie/consent overlays removed before capture.'
+            })
+          with open(manifest,'w',newline='',encoding='utf-8') as h:
+            w=csv.DictWriter(h,fieldnames=fields); w.writeheader(); w.writerows(rows)
+          PY
+
       - name: Commit captures
         run: |
           git config user.name "ChatGPT"
