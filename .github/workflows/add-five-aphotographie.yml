@@ -24,8 +24,8 @@ jobs:
           convert_asset "https://yaronpzislkfetwrihfs.supabase.co/storage/v1/object/public/photos/resized/1767002285484-1766999891063-1766962579771-4-resized.webp" "aphotographie/portfolio/aphotographie-culinaire-restaurant-geneve-03.jpg"
           convert_asset "https://yaronpzislkfetwrihfs.supabase.co/storage/v1/object/public/photos/f1b72fda-8a15-47c2-8b92-bd671ca92722/1767089340761-0K6A5665.webp" "aphotographie/portfolio/aphotographie-metiers-artisan-geneve-03.jpg"
           convert_asset "https://yaronpzislkfetwrihfs.supabase.co/storage/v1/object/public/photos/0609a25f-3c4e-4996-9aa5-b9f2ea64b0e1/1767095090540-0K6A6390.webp" "aphotographie/portfolio/aphotographie-mariage-geneve-01.jpg"
-          convert_asset "https://raw.githubusercontent.com/danielmaitredarest/aphotographie/main/public/blog/golden-hour-geneve.webp" "aphotographie/portfolio/aphotographie-golden-hour-geneve-01.jpg"
-          convert_asset "https://raw.githubusercontent.com/danielmaitredarest/aphotographie/main/public/blog/identite-visuelle-marque.webp" "aphotographie/portfolio/aphotographie-identite-visuelle-marque-01.jpg"
+          convert_asset "https://aphotographie.ch/blog/golden-hour-geneve.webp" "aphotographie/portfolio/aphotographie-golden-hour-geneve-01.jpg"
+          convert_asset "https://aphotographie.ch/blog/identite-visuelle-marque.webp" "aphotographie/portfolio/aphotographie-identite-visuelle-marque-01.jpg"
       - name: Update manifest
         shell: python
         run: |
