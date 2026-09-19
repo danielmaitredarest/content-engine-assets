@@ -36,9 +36,6 @@ jobs:
            ("aphotographie-portfolio-mariage-01","aphotographie/portfolio/aphotographie-mariage-geneve-01.jpg","https://yaronpzislkfetwrihfs.supabase.co/storage/v1/object/public/photos/0609a25f-3c4e-4996-9aa5-b9f2ea64b0e1/1767095090540-0K6A6390.webp","aphotographie-public-cms:additional-mariage"),
            ("aphotographie-blog-golden-hour-01","aphotographie/portfolio/aphotographie-golden-hour-geneve-01.jpg","https://aphotographie.ch/blog/golden-hour-geneve.webp","danielmaitredarest/aphotographie:public/blog/golden-hour-geneve.webp"),
            ("aphotographie-blog-identite-visuelle-01","aphotographie/portfolio/aphotographie-identite-visuelle-marque-01.jpg","https://aphotographie.ch/blog/identite-visuelle-marque.webp","danielmaitredarest/aphotographie:public/blog/identite-visuelle-marque.webp")]
-          for idx,line in enumerate(open("/tmp/extra_meta.txt"),1):
-            i,c,u=line.strip().split("|",2)
-            specs.append((f"aphotographie-portfolio-selection-0{idx}",f"aphotographie/portfolio/aphotographie-portfolio-selection-geneve-0{idx}.jpg",u,f"aphotographie-public-cms:{i}"))
           with open("manifest.csv",newline="",encoding="utf-8") as f:
             rd=csv.DictReader(f); fields=rd.fieldnames; rows=list(rd)
           ids={r["asset_id"] for r in rows}
