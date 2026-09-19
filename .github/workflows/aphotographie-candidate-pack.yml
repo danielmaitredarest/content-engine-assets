@@ -1,0 +1,40 @@
+name: A Photographie candidate pack
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  contents: read
+
+jobs:
+  pack:
+    if: startsWith(github.event.issue.title, 'Aphoto candidate pack trigger')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download public candidate images
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p candidates
+          curl -LfsS "https://yaronpzislkfetwrihfs.supabase.co/storage/v1/object/public/photos/1c8e5b1a-06f0-4519-b256-b836105955ba/1769964105337-0K6A1506.webp" -o candidates/portrait-01.webp
+          curl -LfsS "https://yaronpzislkfetwrihfs.supabase.co/storage/v1/object/public/photos/1c8e5b1a-06f0-4519-b256-b836105955ba/1769964107385-0K6A1244.webp" -o candidates/portrait-02.webp
+          curl -LfsS "https://yaronpzislkfetwrihfs.supabase.co/storage/v1/object/public/photos/1c8e5b1a-06f0-4519-b256-b836105955ba/1779377786547-1P2A6062.webp" -o candidates/portrait-03.webp
+          curl -LfsS "https://yaronpzislkfetwrihfs.supabase.co/storage/v1/object/public/photos/f1b72fda-8a15-47c2-8b92-bd671ca92722/1767089368146-0K6A5719.webp" -o candidates/metiers-01.webp
+          curl -LfsS "https://yaronpzislkfetwrihfs.supabase.co/storage/v1/object/public/photos/f1b72fda-8a15-47c2-8b92-bd671ca92722/1767089340761-0K6A5665.webp" -o candidates/metiers-02.webp
+          curl -LfsS "https://yaronpzislkfetwrihfs.supabase.co/storage/v1/object/public/photos/f1b72fda-8a15-47c2-8b92-bd671ca92722/1767087522982-0K6A5490.webp" -o candidates/metiers-03.webp
+          curl -LfsS "https://yaronpzislkfetwrihfs.supabase.co/storage/v1/object/public/photos/660bd674-57a4-483c-bfa9-94385dff3572/converted-1766994327875.webp" -o candidates/food-01.webp
+          curl -LfsS "https://yaronpzislkfetwrihfs.supabase.co/storage/v1/object/public/photos/resized/1767002275641-1766999877871-1766962576624-1-resized.webp" -o candidates/food-02.webp
+          curl -LfsS "https://yaronpzislkfetwrihfs.supabase.co/storage/v1/object/public/photos/resized/1767002285484-1766999891063-1766962579771-4-resized.webp" -o candidates/food-03.webp
+          curl -LfsS "https://yaronpzislkfetwrihfs.supabase.co/storage/v1/object/public/photos/df1c5540-f0b3-498d-a4f7-1e0f30024de2/1767092047631-0K6A3276-2.webp" -o candidates/produits-01.webp
+          curl -LfsS "https://yaronpzislkfetwrihfs.supabase.co/storage/v1/object/public/photos/1f225aa7-afe0-49a7-a015-879075f90415/1767094131693-0K6A0157.webp" -o candidates/bijouterie-01.webp
+          curl -LfsS "https://yaronpzislkfetwrihfs.supabase.co/storage/v1/object/public/photos/ab1ffcb6-df27-49e6-aea1-fd28b5826a92/1767089957640-0K6A7839.webp" -o candidates/architecture-01.webp
+          curl -LfsS "https://yaronpzislkfetwrihfs.supabase.co/storage/v1/object/public/photos/62158455-1fe9-4acc-b90c-4d7ade13ef16/1767105250775-0K6A6885-min.webp" -o candidates/evenementiel-01.webp
+          curl -LfsS "https://yaronpzislkfetwrihfs.supabase.co/storage/v1/object/public/photos/2bbecbd8-e820-46e3-b4a4-ed3ce8099608/1767094681414-0K6A5166.webp" -o candidates/mode-01.webp
+          curl -LfsS "https://yaronpzislkfetwrihfs.supabase.co/storage/v1/object/public/photos/0609a25f-3c4e-4996-9aa5-b9f2ea64b0e1/1767095090540-0K6A6390.webp" -o candidates/mariage-01.webp
+          ls -lh candidates
+      - uses: actions/upload-artifact@v4
+        with:
+          name: aphotographie-candidates
+          path: candidates
+          retention-days: 1
