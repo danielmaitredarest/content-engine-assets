@@ -27,18 +27,7 @@ jobs:
           SUPABASE_URL=https://yaronpzislkfetwrihfs.supabase.co
           SUPABASE_KEY=$(curl -fsSL https://raw.githubusercontent.com/danielmaitredarest/aphotographie/main/.env | grep '^VITE_SUPABASE_PUBLISHABLE_KEY=' | cut -d= -f2- | tr -d '"')
           curl -fsSL "$SUPABASE_URL/rest/v1/photos?select=id,category_id,image_url,display_order&order=display_order.asc" -H "apikey: $SUPABASE_KEY" -H "Authorization: Bearer $SUPABASE_KEY" > /tmp/photos.json
-          python3 - <<'PY' > /tmp/extra_urls.txt
-          import json
-          p=json.load(open('/tmp/photos.json'))
-          known=["1767089957640-0K6A7839.webp","1767094131693-0K6A0157.webp","1767105250775-0K6A6885-min.webp","converted-1766994327875.webp","1767002275641-1766999877871-1766962576624-1-resized.webp","1767092047631-0K6A3276-2.webp","1767089368146-0K6A5719.webp","1767087522982-0K6A5490.webp","1767094681414-0K6A5166.webp","1769964105337-0K6A1506.webp","1769964107385-0K6A1244.webp","1779377786547-1P2A6062.webp","1767002285484-1766999891063-1766962579771-4-resized.webp","1767089340761-0K6A5665.webp","1767095090540-0K6A6390.webp"]
-          extra=[]; seen=set()
-          for x in p:
-              u=x.get("image_url") or ""; cat=x.get("category_id")
-              if not u or any(k in u for k in known) or cat in seen: continue
-              extra.append((u,x["id"],cat)); seen.add(cat)
-              if len(extra)==2: break
-          for u,i,c in extra: print(u+"|"+i+"|"+str(c))
-          PY
+          jq -r '[.[] | select(.image_url != null)] | unique_by(.category_id) | .[] | [.image_url,.id,.category_id] | @tsv' /tmp/photos.json | grep -v -E '1767089957640|1767094131693|1767105250775|converted-1766994327875|1767002275641|1767092047631|1767089368146|1767087522982|1767094681414|1769964105337|1769964107385|1779377786547|1767002285484|1767089340761|1767095090540' | head -n 2 | tr '\t' '|' > /tmp/extra_urls.txt
           n=0
           while IFS='|' read -r url id cat; do
             n=$((n+1))
