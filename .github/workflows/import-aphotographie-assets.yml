@@ -19,17 +19,20 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p aphotographie/portfolio /tmp/apho
+          python3 -m pip install --quiet pillow
 
           convert_asset() {
             url="$1"; out="$2"; tmp="/tmp/apho/$(basename "$out").webp"
             curl -LfsS "$url" -o "$tmp"
-            if command -v magick >/dev/null 2>&1; then
-              magick "$tmp" -auto-orient -resize '2000x2000>' -strip -quality 90 "$out"
-            elif command -v convert >/dev/null 2>&1; then
-              convert "$tmp" -auto-orient -resize '2000x2000>' -strip -quality 90 "$out"
-            else
-              ffmpeg -loglevel error -y -i "$tmp" -vf "scale=2000:2000:force_original_aspect_ratio=decrease" -q:v 2 "$out"
-            fi
+            python3 - "$tmp" "$out" <<'PY'
+from PIL import Image, ImageOps
+import sys
+src, dst = sys.argv[1], sys.argv[2]
+im = Image.open(src)
+im = ImageOps.exif_transpose(im).convert("RGB")
+im.thumbnail((2000, 2000), Image.Resampling.LANCZOS)
+im.save(dst, "JPEG", quality=90, optimize=True, progressive=True)
+PY
           }
 
           convert_asset "https://yaronpzislkfetwrihfs.supabase.co/storage/v1/object/public/photos/ab1ffcb6-df27-49e6-aea1-fd28b5826a92/1767089957640-0K6A7839.webp" "aphotographie/portfolio/aphotographie-architecture-interieur-geneve-01.jpg"
