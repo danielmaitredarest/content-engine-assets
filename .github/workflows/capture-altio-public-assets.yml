@@ -29,11 +29,23 @@ jobs:
             ['https://altio.ch/','altio/site/altio-homepage.jpg',2500],
             ['https://altio.ch/services','altio/site/altio-services.jpg',2500],
             ['https://altio.ch/realisations','altio/realisations/altio-portfolio-overview.jpg',3500],
+            ['https://nessfo.ch/en','altio/realisations/ness.jpg',3000],
+            ['https://runigma.com/b2c','altio/realisations/runigma-b2c.jpg',4500],
+            ['https://maisonsama.ch/','altio/realisations/maison-sama.jpg',3000],
+            ['https://rooftop.altio.ch/','altio/realisations/rooftop-105.jpg',4000],
+            ['https://gpaley.ch/fr','altio/realisations/gerard-paley.jpg',3000],
+            ['https://marcus.altio.ch/','altio/realisations/marcus.jpg',5500],
+            ['https://myswissinvoice.ch/','altio/realisations/myswissinvoice.jpg',3000],
+            ['https://relumo.ch/','altio/realisations/relumo.jpg',3000],
+            ['https://propulsa.ch/','altio/realisations/propulsa.jpg',3000],
           ];
           for (const [url,file,wait] of shots){
-            await page.goto(url,{waitUntil:'networkidle',timeout:90000});
-            await page.waitForTimeout(wait);
-            await page.screenshot({path:file,type:'jpeg',quality:90,fullPage:false});
+            try {
+              await page.goto(url,{waitUntil:'domcontentloaded',timeout:90000});
+              await page.waitForLoadState('networkidle',{timeout:20000}).catch(()=>{});
+              await page.waitForTimeout(wait);
+              await page.screenshot({path:file,type:'jpeg',quality:90,fullPage:false});
+            } catch(e) { console.error('SKIP',url,e.message); }
           }
           await browser.close();
           JS
