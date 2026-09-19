@@ -45,6 +45,10 @@ jobs:
           fields=['asset_id','project','relative_path','filename','source_type','source_url','source_reference','created_at','sha256','channels','github_path','github_public_url','status','notes']
           source_refs={
             'askit-ai':'danielmaitredarest/askit-ai',
+            'falcification':'danielmaitredarest/facile-texte-clarifier',
+            'propulsa':'danielmaitredarest/autopilot-digital-cockpit',
+            'relumo':'danielmaitredarest/aurora-forge-tech',
+            'myswissinvoice':'danielmaitredarest/qr-bill-pal',
           }
           rows=[]
           if os.path.exists(manifest):
