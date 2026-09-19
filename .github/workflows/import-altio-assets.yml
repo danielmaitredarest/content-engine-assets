@@ -15,9 +15,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          curl -fsSL -H "Authorization: Bearer $GH_TOKEN" -H "Accept: application/vnd.github+json" https://api.github.com/repos/danielmaitredarest/webforge-briefly/tarball/main -o /tmp/altio.tar.gz
-          mkdir -p /tmp/altio-src
-          tar -xzf /tmp/altio.tar.gz -C /tmp/altio-src --strip-components=1
+          git clone --depth 1 https://github.com/danielmaitredarest/webforge-briefly.git /tmp/altio-src
       - name: Normalize reusable assets
         shell: bash
         run: |
