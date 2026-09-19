@@ -1,9 +1,8 @@
 name: Export asset bridge
 
 on:
-  push:
-    paths:
-      - ".github/workflows/export-asset-bridge.yml"
+  issues:
+    types: [opened]
   workflow_dispatch:
 
 jobs:
