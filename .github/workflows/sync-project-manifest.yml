@@ -54,6 +54,7 @@ jobs:
           if os.path.exists(manifest):
             with open(manifest,newline='',encoding='utf-8') as h:
               rows=list(csv.DictReader(h))
+          existing={r.get('relative_path'):r for r in rows if r.get('project')==project}
           rows=[r for r in rows if r.get('project')!=project]
           for root,_,files in os.walk(project):
             for fn in sorted(files):
@@ -61,15 +62,22 @@ jobs:
               p=os.path.join(root,fn).replace('\\','/')
               sha=hashlib.sha256(open(p,'rb').read()).hexdigest()
               rel=p[len(project)+1:]
-              aid=project+'-'+rel.rsplit('.',1)[0].replace('/','-').replace('_','-')
+              stem,ext=os.path.splitext(rel)
+              aid=project+'-'+stem.replace('/','-').replace('_','-')+'-'+ext.lstrip('.').lower()
+              old=existing.get(p,{})
+              source_type=old.get('source_type') or 'source_repo_asset'
+              source_url=old.get('source_url') or ''
+              source_reference=old.get('source_reference') or source_refs.get(project,'first-party-source')
+              notes=old.get('notes') or ('Reusable public capture.' if source_type=='public_capture' else 'Existing first-party asset imported from the project source repository.')
               rows.append({
                 'asset_id':aid,'project':project,'relative_path':p,'filename':fn,
-                'source_type':'source_repo_asset','source_url':'',
-                'source_reference':source_refs.get(project,'first-party-source'),
-                'created_at':str(date.today()),'sha256':sha,'channels':'',
+                'source_type':source_type,'source_url':source_url,
+                'source_reference':source_reference,
+                'created_at':old.get('created_at') or str(date.today()),'sha256':sha,
+                'channels':old.get('channels') or '',
                 'github_path':p,
                 'github_public_url':'https://raw.githubusercontent.com/danielmaitredarest/content-engine-assets/main/'+p,
-                'status':'ready','notes':'Existing first-party asset imported from the project source repository.'
+                'status':old.get('status') or 'ready','notes':notes
               })
           with open(manifest,'w',newline='',encoding='utf-8') as h:
             w=csv.DictWriter(h,fieldnames=fields);w.writeheader();w.writerows(rows)
