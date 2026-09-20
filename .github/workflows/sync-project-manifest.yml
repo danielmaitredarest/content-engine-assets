@@ -67,7 +67,11 @@ jobs:
               old=existing.get(p,{})
               source_type=old.get('source_type') or 'source_repo_asset'
               source_url=old.get('source_url') or ''
-              source_reference=old.get('source_reference') or source_refs.get(project,'first-party-source')
+              old_ref=old.get('source_reference') or ''
+              if source_type=='source_repo_asset' and (not old_ref or old_ref=='first-party-source'):
+                source_reference=source_refs.get(project,'first-party-source')
+              else:
+                source_reference=old_ref or source_refs.get(project,'first-party-source')
               notes=old.get('notes') or ('Reusable public capture.' if source_type=='public_capture' else 'Existing first-party asset imported from the project source repository.')
               rows.append({
                 'asset_id':aid,'project':project,'relative_path':p,'filename':fn,
