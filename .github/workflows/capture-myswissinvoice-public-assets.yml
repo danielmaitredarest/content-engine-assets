@@ -23,14 +23,14 @@ jobs:
           npx playwright install chromium
       - name: Capture public interface
         run: |
-          mkdir -p myswissinvoice/site
+          mkdir -p myswissinvoice/assets/site
           cat > capture.mjs <<'JS'
           import { chromium } from 'playwright';
           const browser=await chromium.launch({headless:true});
           const page=await browser.newPage({viewport:{width:1440,height:1000},deviceScaleFactor:1});
           const shots=[
-            ['https://myswissinvoice.ch/','myswissinvoice/site/homepage.jpg',2500],
-            ['https://myswissinvoice.ch/generateur-facture-qr','myswissinvoice/site/generateur-facture-qr.jpg',3000],
+            ['https://myswissinvoice.ch/','myswissinvoice/assets/site/homepage.jpg',2500],
+            ['https://myswissinvoice.ch/generateur-facture-qr','myswissinvoice/assets/site/generateur-facture-qr.jpg',3000],
           ];
           for (const [url,file,wait] of shots){
             try {
@@ -77,8 +77,8 @@ jobs:
           manifest='manifest.csv'
           fields=['asset_id','project','relative_path','filename','source_type','source_url','source_reference','created_at','sha256','channels','github_path','github_public_url','status','notes']
           urls={
-            'myswissinvoice/site/homepage.jpg':'https://myswissinvoice.ch/',
-            'myswissinvoice/site/generateur-facture-qr.jpg':'https://myswissinvoice.ch/generateur-facture-qr',
+            'myswissinvoice/assets/site/homepage.jpg':'https://myswissinvoice.ch/',
+            'myswissinvoice/assets/site/generateur-facture-qr.jpg':'https://myswissinvoice.ch/generateur-facture-qr',
           }
           rows=[]
           if os.path.exists(manifest):
