@@ -1,0 +1,109 @@
+name: Capture MySwissInvoice public assets
+on:
+  workflow_dispatch:
+  issues:
+    types: [opened]
+permissions:
+  contents: write
+concurrency:
+  group: content-engine-manifest-write
+  cancel-in-progress: false
+jobs:
+  capture:
+    if: github.event_name == 'workflow_dispatch' || startsWith(github.event.issue.title, 'Capture MySwissInvoice public assets')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install browser
+        run: |
+          npm install --no-save playwright@1.55.0
+          npx playwright install chromium
+      - name: Capture public interface
+        run: |
+          mkdir -p myswissinvoice/site
+          cat > capture.mjs <<'JS'
+          import { chromium } from 'playwright';
+          const browser=await chromium.launch({headless:true});
+          const page=await browser.newPage({viewport:{width:1440,height:1000},deviceScaleFactor:1});
+          const shots=[
+            ['https://myswissinvoice.ch/','myswissinvoice/site/homepage.jpg',2500],
+            ['https://myswissinvoice.ch/generateur-facture-qr','myswissinvoice/site/generateur-facture-qr.jpg',3000],
+          ];
+          for (const [url,file,wait] of shots){
+            try {
+              await page.goto(url,{waitUntil:'domcontentloaded',timeout:90000});
+              await page.waitForLoadState('networkidle',{timeout:20000}).catch(()=>{});
+              await page.waitForTimeout(wait);
+              const consentWords=/accepter|accept all|tout accepter|refuser|reject all|continuer sans accepter/i;
+              const buttons=page.getByRole('button');
+              for (let i=0;i<await buttons.count();i++) {
+                const b=buttons.nth(i);
+                const label=((await b.innerText().catch(()=>''))+' '+(await b.getAttribute('aria-label').catch(()=>''))).trim();
+                if (consentWords.test(label)) { await b.click({force:true}).catch(()=>{}); await page.waitForTimeout(400); break; }
+              }
+              await page.evaluate(() => {
+                const hints=/cookie|consent|tarteaucitron|axeptio|didomi|onetrust|cookiebot|cmp|rgpd/i;
+                const consent=/cookie|consentement|privacy preferences|préférences de confidentialité/i;
+                const action=/accepter|accept|refuser|reject|préférences|preferences/i;
+                for (const el of [...document.querySelectorAll('body *')].reverse()) {
+                  const meta=[el.id, typeof el.className==='string'?el.className:'', el.getAttribute('aria-label')||'', el.getAttribute('data-testid')||''].join(' ');
+                  const txt=(el.textContent||'').trim();
+                  const s=getComputedStyle(el);
+                  const overlay=(s.position==='fixed'||s.position==='sticky') && (parseInt(s.zIndex)||0)>10;
+                  const dialog=el.getAttribute('role')==='dialog'||el.getAttribute('aria-modal')==='true';
+                  if ((hints.test(meta)||(consent.test(txt)&&action.test(txt))) && (overlay||dialog)) el.remove();
+                }
+                document.querySelectorAll('[class*="backdrop"],[class*="overlay"]').forEach(el=>{
+                  const s=getComputedStyle(el); if(s.position==='fixed'&&(parseInt(s.zIndex)||0)>10) el.remove();
+                });
+                document.documentElement.style.overflow='auto';
+                document.body.style.overflow='auto';
+                document.body.style.pointerEvents='auto';
+              }).catch(()=>{});
+              await page.screenshot({path:file,type:'jpeg',quality:90,fullPage:false});
+            } catch(e) { console.error('SKIP',url,e.message); }
+          }
+          await browser.close();
+          JS
+          node capture.mjs
+      - name: Refresh MySwissInvoice manifest rows
+        run: |
+          python - <<'PY'
+          import csv, hashlib, os
+          from datetime import date
+          manifest='manifest.csv'
+          fields=['asset_id','project','relative_path','filename','source_type','source_url','source_reference','created_at','sha256','channels','github_path','github_public_url','status','notes']
+          urls={
+            'myswissinvoice/site/homepage.jpg':'https://myswissinvoice.ch/',
+            'myswissinvoice/site/generateur-facture-qr.jpg':'https://myswissinvoice.ch/generateur-facture-qr',
+          }
+          rows=[]
+          if os.path.exists(manifest):
+            with open(manifest,newline='',encoding='utf-8') as h: rows=list(csv.DictReader(h))
+          rows=[r for r in rows if not (r.get('project')=='myswissinvoice' and r.get('relative_path') in urls)]
+          for p,u in urls.items():
+            if not os.path.exists(p): continue
+            sha=hashlib.sha256(open(p,'rb').read()).hexdigest()
+            rows.append({
+              'asset_id':'myswissinvoice-'+os.path.splitext(os.path.basename(p))[0],
+              'project':'myswissinvoice','relative_path':p,'filename':os.path.basename(p),
+              'source_type':'public_capture','source_url':u,'source_reference':'myswissinvoice-capture-workflow',
+              'created_at':str(date.today()),'sha256':sha,'channels':'','github_path':p,
+              'github_public_url':'https://raw.githubusercontent.com/danielmaitredarest/content-engine-assets/main/'+p,
+              'status':'ready','notes':'Reusable public interface capture; consent overlays removed before capture.'
+            })
+          with open(manifest,'w',newline='',encoding='utf-8') as h:
+            w=csv.DictWriter(h,fieldnames=fields); w.writeheader(); w.writerows(rows)
+          PY
+      - name: Commit captures
+        run: |
+          git config user.name "ChatGPT"
+          git config user.email "chatgpt@users.noreply.github.com"
+          git add myswissinvoice manifest.csv
+          if ! git diff --cached --quiet; then
+            git commit -m "Add reusable MySwissInvoice public captures"
+            git push
+          fi
