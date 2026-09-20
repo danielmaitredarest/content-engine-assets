@@ -56,10 +56,11 @@ Assets are organised by project and asset type, not by publishing channel. The p
 ## Rules
 
 - Public assets only. Never add confidential, private or customer-provided material.
-- For A. Photographie, only use photographs already published on aphotographie.ch. Do not generate replacement photography.
+- For A. Photographie, publication workflows must use only Angélique Freitag's own photographs already available in this Content Engine repository or its mirrored private Google Drive. Never use stock, external imagery or generated replacement photography.
 - For FALCification, never add user documents, transformed customer content or private before/after examples unless Daniel explicitly provides them for publication.
 - For screenshots, choose the most representative and visually finished state of the page. Wait for preloaders, video heroes and dynamic content when needed instead of taking a mechanical first-load screenshot.
 - Keep filenames descriptive, lowercase and hyphenated.
-- Avoid duplicates. Reuse the same asset across channels and track usages in the manifest.
+- Existing first-party assets are the default for every project: search this repository and the mirrored project Drive first. Create or capture a new visual only when no existing asset is genuinely relevant, or when the relevant asset has been used too recently and a fresh visual is justified.
+- Avoid duplicates and excessive recent repetition. Reuse the same asset across channels when appropriate and track usages in the manifest.
 - The public manifest must never expose private Google Drive URLs or Drive file IDs.
 - No open-source license is granted for the visual assets in this repository.
