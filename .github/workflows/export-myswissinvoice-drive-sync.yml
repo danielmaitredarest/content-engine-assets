@@ -1,0 +1,25 @@
+name: Export MySwissInvoice Drive sync
+on:
+  workflow_dispatch:
+  issues:
+    types: [opened]
+permissions:
+  contents: read
+jobs:
+  export:
+    if: github.event_name == 'workflow_dispatch' || startsWith(github.event.issue.title, 'Export MySwissInvoice Drive sync')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Package MySwissInvoice assets
+        run: |
+          mkdir -p export/myswissinvoice
+          cp -R myswissinvoice/articles export/myswissinvoice/
+          cp -R myswissinvoice/generated export/myswissinvoice/
+          cp -R myswissinvoice/site export/myswissinvoice/
+          find export -name .gitkeep -delete
+      - uses: actions/upload-artifact@v4
+        with:
+          name: myswissinvoice-drive-sync
+          path: export/myswissinvoice
+          retention-days: 7
