@@ -20,24 +20,24 @@ jobs:
           npx playwright install chromium
       - name: Capture Altio pages
         run: |
-          mkdir -p altio/site altio/realisations
+          mkdir -p altio/assets/site altio/assets/realisations
           cat > capture.mjs <<'JS'
           import { chromium } from 'playwright';
           const browser=await chromium.launch({headless:true});
           const page=await browser.newPage({viewport:{width:1440,height:1000},deviceScaleFactor:1});
           const shots=[
-            ['https://altio.ch/','altio/site/altio-homepage.jpg',2500],
-            ['https://altio.ch/services','altio/site/altio-services.jpg',2500],
-            ['https://altio.ch/realisations','altio/realisations/altio-portfolio-overview.jpg',3500],
-            ['https://nessfo.ch/en','altio/realisations/ness.jpg',3000],
-            ['https://runigma.com/b2c','altio/realisations/runigma-b2c.jpg',4500],
-            ['https://maisonsama.ch/','altio/realisations/maison-sama.jpg',3000],
-            ['https://rooftop.altio.ch/','altio/realisations/rooftop-105.jpg',4000],
-            ['https://gpaley.ch/fr','altio/realisations/gerard-paley.jpg',3000],
-            ['https://marcus.altio.ch/','altio/realisations/marcus.jpg',5500],
-            ['https://myswissinvoice.ch/','altio/realisations/myswissinvoice.jpg',3000],
-            ['https://relumo.ch/','altio/realisations/relumo.jpg',3000],
-            ['https://propulsa.ch/','altio/realisations/propulsa.jpg',3000],
+            ['https://altio.ch/','altio/assets/site/altio-homepage.jpg',2500],
+            ['https://altio.ch/services','altio/assets/site/altio-services.jpg',2500],
+            ['https://altio.ch/realisations','altio/assets/realisations/altio-portfolio-overview.jpg',3500],
+            ['https://nessfo.ch/en','altio/assets/realisations/ness.jpg',3000],
+            ['https://runigma.com/b2c','altio/assets/realisations/runigma-b2c.jpg',4500],
+            ['https://maisonsama.ch/','altio/assets/realisations/maison-sama.jpg',3000],
+            ['https://rooftop.altio.ch/','altio/assets/realisations/rooftop-105.jpg',4000],
+            ['https://gpaley.ch/fr','altio/assets/realisations/gerard-paley.jpg',3000],
+            ['https://marcus.altio.ch/','altio/assets/realisations/marcus.jpg',5500],
+            ['https://myswissinvoice.ch/','altio/assets/realisations/myswissinvoice.jpg',3000],
+            ['https://relumo.ch/','altio/assets/realisations/relumo.jpg',3000],
+            ['https://propulsa.ch/','altio/assets/realisations/propulsa.jpg',3000],
           ];
           for (const [url,file,wait] of shots){
             try {
@@ -85,18 +85,18 @@ jobs:
           manifest='manifest.csv'
           fields=['asset_id','project','relative_path','filename','source_type','source_url','source_reference','created_at','sha256','channels','github_path','github_public_url','status','notes']
           urls={
-            'altio/site/altio-homepage.jpg':'https://altio.ch/',
-            'altio/site/altio-services.jpg':'https://altio.ch/services',
-            'altio/realisations/altio-portfolio-overview.jpg':'https://altio.ch/realisations',
-            'altio/realisations/ness.jpg':'https://nessfo.ch/en',
-            'altio/realisations/runigma-b2c.jpg':'https://runigma.com/b2c',
-            'altio/realisations/maison-sama.jpg':'https://maisonsama.ch/',
-            'altio/realisations/rooftop-105.jpg':'https://rooftop.altio.ch/',
-            'altio/realisations/gerard-paley.jpg':'https://gpaley.ch/fr',
-            'altio/realisations/marcus.jpg':'https://marcus.altio.ch/',
-            'altio/realisations/myswissinvoice.jpg':'https://myswissinvoice.ch/',
-            'altio/realisations/relumo.jpg':'https://relumo.ch/',
-            'altio/realisations/propulsa.jpg':'https://propulsa.ch/',
+            'altio/assets/site/altio-homepage.jpg':'https://altio.ch/',
+            'altio/assets/site/altio-services.jpg':'https://altio.ch/services',
+            'altio/assets/realisations/altio-portfolio-overview.jpg':'https://altio.ch/realisations',
+            'altio/assets/realisations/ness.jpg':'https://nessfo.ch/en',
+            'altio/assets/realisations/runigma-b2c.jpg':'https://runigma.com/b2c',
+            'altio/assets/realisations/maison-sama.jpg':'https://maisonsama.ch/',
+            'altio/assets/realisations/rooftop-105.jpg':'https://rooftop.altio.ch/',
+            'altio/assets/realisations/gerard-paley.jpg':'https://gpaley.ch/fr',
+            'altio/assets/realisations/marcus.jpg':'https://marcus.altio.ch/',
+            'altio/assets/realisations/myswissinvoice.jpg':'https://myswissinvoice.ch/',
+            'altio/assets/realisations/relumo.jpg':'https://relumo.ch/',
+            'altio/assets/realisations/propulsa.jpg':'https://propulsa.ch/',
           }
           rows=[]
           if os.path.exists(manifest):
