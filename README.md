@@ -11,40 +11,40 @@ Assets are organised by project and asset type, not by publishing channel. The p
 ## Projects and structure
 
 ### Altio
-- `altio/site/`
-- `altio/realisations/`
-- `altio/articles/`
-- `altio/generated/`
+- `altio/assets/site/`
+- `altio/assets/realisations/`
+- `altio/assets/articles/`
+- `altio/assets/generated/`
 
 ### AskIt-AI
-- `askit-ai/site/`
-- `askit-ai/articles/`
-- `askit-ai/generated/`
+- `askit-ai/assets/site/`
+- `askit-ai/assets/articles/`
+- `askit-ai/assets/generated/`
 
 ### A. Photographie
-- `aphotographie/site/`
-- `aphotographie/portfolio/`
-- `aphotographie/articles/`
+- `aphotographie/assets/site/`
+- `aphotographie/assets/portfolio/`
+- `aphotographie/assets/articles/`
 
 ### FALCification
-- `falcification/site/`
-- `falcification/articles/`
-- `falcification/generated/`
+- `falcification/assets/site/`
+- `falcification/assets/articles/`
+- `falcification/assets/generated/`
 
 ### Propulsa
-- `propulsa/site/`
-- `propulsa/articles/`
-- `propulsa/generated/`
+- `propulsa/assets/site/`
+- `propulsa/assets/articles/`
+- `propulsa/assets/generated/`
 
 ### Relumo
-- `relumo/site/`
-- `relumo/articles/`
-- `relumo/generated/`
+- `relumo/assets/site/`
+- `relumo/assets/articles/`
+- `relumo/assets/generated/`
 
 ### MySwissInvoice
-- `myswissinvoice/site/`
-- `myswissinvoice/articles/`
-- `myswissinvoice/generated/`
+- `myswissinvoice/assets/site/`
+- `myswissinvoice/assets/articles/`
+- `myswissinvoice/assets/generated/`
 
 ## Conventions
 
