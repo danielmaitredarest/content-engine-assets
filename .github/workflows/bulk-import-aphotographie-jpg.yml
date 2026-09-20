@@ -16,7 +16,7 @@ jobs:
         run: |
           set -euo pipefail
           python3 -m pip install --quiet pillow
-          mkdir -p aphotographie/portfolio /tmp/apho
+          mkdir -p aphotographie/assets/portfolio /tmp/apho
           SUPABASE_URL='https://yaronpzislkfetwrihfs.supabase.co'
           HTML=$(curl -fsSL https://aphotographie.ch/)
           JS_PATH=$(printf '%s' "$HTML" | grep -oE 'src="[^"]+\.js[^"]*"' | head -1 | cut -d'"' -f2)
@@ -42,7 +42,7 @@ jobs:
               cat=slug(c.get("slug") or c.get("name") or "portfolio")
               counts[cat]=counts.get(cat,0)+1
               name=f"aphotographie-{cat}-geneve-{counts[cat]:03d}.jpg"
-              path="aphotographie/portfolio/"+name
+              path="aphotographie/assets/portfolio/"+name
               url=p.get("image_url")
               if not url: continue
               try:
@@ -74,7 +74,7 @@ jobs:
         run: |
           git config user.name "ChatGPT"
           git config user.email "chatgpt@users.noreply.github.com"
-          git add aphotographie/portfolio manifest.csv
+          git add aphotographie/assets/portfolio manifest.csv
           if ! git diff --cached --quiet; then
             git commit -m "Bulk import A. Photographie public JPG assets"
             git push
