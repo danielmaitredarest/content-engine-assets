@@ -1,0 +1,81 @@
+name: Bulk import A Photographie JPG assets
+on:
+  workflow_dispatch:
+  issues:
+    types: [opened]
+permissions:
+  contents: write
+jobs:
+  bulk:
+    if: github.event_name == 'workflow_dispatch' || startsWith(github.event.issue.title, 'Aphoto bulk JPG import')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fetch and normalize public CMS photos
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m pip install --quiet pillow
+          mkdir -p aphotographie/assets/portfolio /tmp/apho
+          SUPABASE_URL='https://yaronpzislkfetwrihfs.supabase.co'
+          HTML=$(curl -fsSL https://aphotographie.ch/)
+          JS_PATH=$(printf '%s' "$HTML" | grep -oE 'src="[^"]+\.js[^"]*"' | head -1 | cut -d'"' -f2)
+          case "$JS_PATH" in http*) JS_URL="$JS_PATH";; *) JS_URL="https://aphotographie.ch$JS_PATH";; esac
+          curl -fsSL "$JS_URL" -o /tmp/site.js
+          SUPABASE_KEY=$(grep -oE 'eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+' /tmp/site.js | head -1)
+          test -n "$SUPABASE_KEY"
+          curl -fsSL "$SUPABASE_URL/rest/v1/categories?select=id,slug,name,display_order&order=display_order.asc" -H "apikey: $SUPABASE_KEY" -H "Authorization: Bearer $SUPABASE_KEY" > /tmp/categories.json
+          curl -fsSL "$SUPABASE_URL/rest/v1/photos?select=id,category_id,image_url,title,alt_text,is_featured,display_order&order=display_order.asc" -H "apikey: $SUPABASE_KEY" -H "Authorization: Bearer $SUPABASE_KEY" > /tmp/photos.json
+          python3 - <<'PY'
+          import json,re,unicodedata,urllib.request,hashlib,csv,os
+          from PIL import Image,ImageOps
+          cats={c["id"]:c for c in json.load(open("/tmp/categories.json"))}
+          photos=json.load(open("/tmp/photos.json"))
+          def slug(s):
+              s=unicodedata.normalize("NFKD",s or "").encode("ascii","ignore").decode().lower()
+              s=re.sub(r"[^a-z0-9]+","-",s).strip("-")
+              return s or "portfolio"
+          counts={}
+          manifest=[]
+          for p in photos:
+              c=cats.get(p.get("category_id"),{})
+              cat=slug(c.get("slug") or c.get("name") or "portfolio")
+              counts[cat]=counts.get(cat,0)+1
+              name=f"aphotographie-{cat}-geneve-{counts[cat]:03d}.jpg"
+              path="aphotographie/assets/portfolio/"+name
+              url=p.get("image_url")
+              if not url: continue
+              try:
+                  urllib.request.urlretrieve(url,"/tmp/apho/src")
+                  im=ImageOps.exif_transpose(Image.open("/tmp/apho/src")).convert("RGB")
+                  im.save(path,"JPEG",quality=92,optimize=True,progressive=True)
+                  sha=hashlib.sha256(open(path,"rb").read()).hexdigest()
+                  manifest.append([p.get("id",""),cat,path,name,url,p.get("title") or "",p.get("alt_text") or "",sha])
+              except Exception as e:
+                  print("SKIP",url,e)
+          with open("/tmp/bulk.csv","w",newline="",encoding="utf-8") as f: csv.writer(f).writerows(manifest)
+          print("normalized",len(manifest))
+          PY
+      - name: Merge public manifest
+        shell: python
+        run: |
+          import csv,os
+          with open("manifest.csv",newline="",encoding="utf-8") as f:
+            rd=csv.DictReader(f); fields=rd.fieldnames; rows=list(rd)
+          existing_sha={r.get("sha256") for r in rows}
+          for pid,cat,path,name,url,title,alt,sha in csv.reader(open("/tmp/bulk.csv",encoding="utf-8")):
+            if sha in existing_sha: continue
+            rows.append({"asset_id":"aphotographie-cms-"+pid,"project":"aphotographie","relative_path":path,"filename":name,"source_type":"public_portfolio","source_url":url,"source_reference":"aphotographie-public-cms:"+pid,"created_at":"2026-09-19","sha256":sha,"channels":"","github_path":path,"github_public_url":"https://raw.githubusercontent.com/danielmaitredarest/content-engine-assets/main/"+path,"status":"ready","notes":"Bulk normalized JPEG from public A. Photographie CMS. Original title: "+title+"; alt: "+alt})
+            existing_sha.add(sha)
+          with open("manifest.csv","w",newline="",encoding="utf-8") as f:
+            wr=csv.DictWriter(f,fieldnames=fields); wr.writeheader(); wr.writerows(rows)
+      - name: Commit bulk assets
+        shell: bash
+        run: |
+          git config user.name "ChatGPT"
+          git config user.email "chatgpt@users.noreply.github.com"
+          git add aphotographie/assets/portfolio manifest.csv
+          if ! git diff --cached --quiet; then
+            git commit -m "Bulk import A. Photographie public JPG assets"
+            git push
+          fi
