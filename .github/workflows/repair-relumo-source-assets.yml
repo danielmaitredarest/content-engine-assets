@@ -1,0 +1,42 @@
+name: Repair Relumo source assets
+on:
+  issues:
+    types: [opened]
+permissions:
+  contents: write
+jobs:
+  repair:
+    if: startsWith(github.event.issue.title, 'Repair Relumo source assets')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Restore binary assets from source repo
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p relumo/assets/site
+          base='https://raw.githubusercontent.com/danielmaitredarest/aurora-forge-tech/main/src/assets'
+          for f in da-reference.png logo-full.png logo-symbol.png logo-text.png; do
+            curl -fL "$base/$f" -o "relumo/assets/site/$f"
+            test -s "relumo/assets/site/$f"
+          done
+      - name: Commit repaired assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "ChatGPT"
+          git config user.email "chatgpt@users.noreply.github.com"
+          git add relumo/assets/site/da-reference.png relumo/assets/site/logo-full.png relumo/assets/site/logo-symbol.png relumo/assets/site/logo-text.png
+          if ! git diff --cached --quiet; then
+            git commit -m "Restore Relumo source image assets"
+            git push
+          fi
+      - name: Package restored assets
+        shell: bash
+        run: |
+          zip -j /tmp/relumo-repaired-assets.zip             relumo/assets/site/da-reference.png             relumo/assets/site/logo-full.png             relumo/assets/site/logo-symbol.png             relumo/assets/site/logo-text.png
+      - uses: actions/upload-artifact@v4
+        with:
+          name: relumo-repaired-assets
+          path: /tmp/relumo-repaired-assets.zip
+          retention-days: 3
